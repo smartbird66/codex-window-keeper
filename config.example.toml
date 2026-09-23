@@ -1,0 +1,21 @@
+# wake is the conservative default. Use resume modes only after testing manually.
+mode = "wake"
+codex_home = "~/.codex"
+workdir = "~"
+prompt = "hello"
+
+# Optional fixed local-time strategy. When set, this replaces reset-based
+# triggering and runs the configured command once per local calendar day.
+# daily_at = "06:00"
+
+grace_seconds = 10
+poll_seconds = 20
+max_session_files = 50
+tail_bytes = 2097152
+
+# max_retries is in addition to the initial attempt.
+max_retries = 3
+retry_delay_seconds = 300
+
+# Wake defaults to 300 seconds when omitted. Other modes default to 1800.
+command_timeout = 300

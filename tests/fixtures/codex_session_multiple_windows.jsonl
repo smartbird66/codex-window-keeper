@@ -1,0 +1,2 @@
+{"type":"event_msg","payload":{"type":"token_count","rate_limits":{"primary":{"used_percent":17.0,"window_minutes":300,"resets_at":1800000002},"secondary":{"used_percent":31.0,"window_minutes":10080,"resets_at":1800600000},"credits":{"has_credits":false,"unlimited":false,"balance":null}}}}
+

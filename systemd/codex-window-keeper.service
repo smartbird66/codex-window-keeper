@@ -1,0 +1,16 @@
+[Unit]
+Description=Codex 5h Window Keeper
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+Environment=PYTHONUNBUFFERED=1
+ExecStart=%h/.local/bin/codex-window-keeper
+UMask=0077
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=15
+
+[Install]
+WantedBy=default.target

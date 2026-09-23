@@ -1,0 +1,5 @@
+{"type":"event_msg","payload":{"type":"token_count","rate_limits":{"primary":{"used_percent":1,"window_minutes":300,"resets_at":1700000000}}}}
+this is deliberately invalid json
+{"rate_limits":{"primary":{"used_percent":2,"window_minutes":300,"resets_at":1800000001}}}
+{"unfinished":
+
