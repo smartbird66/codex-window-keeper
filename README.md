@@ -1,20 +1,39 @@
 # codex-window-keeper
 
-`codex-window-keeper` is a small Linux service that runs a Codex CLI command after the real
-five-hour usage window resets, or once per day at a configured local time.
+`codex-window-keeper` is a small Linux service that helps align Codex's real five-hour usage
+window with your work schedule and automatically runs a Codex CLI action at the right time.
+
+This project is for ChatGPT Plus users working within Codex's five-hour usage limit. The limit is
+often enough overall, but it gets frustrating when several tasks pile up in the same part of the
+day. Upgrading for 5x usage can be overkill: you may not need more total usage, just better timing
+for the usage you already have.
+
+## Why this project exists
+
+When a five-hour window starts with your first request in the morning, its later reset points may
+fall near the end of the workday or after it. That can leave fewer opportunities to continue
+quota-heavy work during working hours.
+
+This project can send a lightweight Codex request at a configured local time, such as 06:00, so a
+new window can start before work when no existing window is still active. It can also watch the
+real server-provided reset timestamp and run a configured action after that reset. The result is a
+more useful schedule without guessing or changing Codex's rate-limit rules.
+
+![Align the five-hour Codex window with your workday](<docs/Align 5h window with your workdays.png>)
 
 > This tool does not bypass or reset Codex rate limits. It sends ordinary Codex CLI requests and
 > follows the server-provided `resets_at` value.
 
-## Features
+## What it does
 
-- Reads only rate-limit metadata from local Codex session JSONL files.
-- Detects the primary window with `window_minutes == 300`.
-- Never estimates the next window as `old reset + 5 hours`.
+- Runs a small `codex exec "hello"` request once per day at a configured local time.
+- Alternatively, watches the real five-hour `resets_at` timestamp and runs after the reset.
+- Supports wake, resume, and trusted custom-command modes.
 - Persists state to prevent duplicate execution after restarts.
-- Supports a daily local-time schedule, retries, timeouts, grace periods, and dry runs.
-- Runs a small `codex exec "hello"` request by default; resume and shell modes require explicit
-  configuration.
+- Provides retries, timeouts, grace periods, status inspection, and dry runs.
+- Reads only rate-limit metadata from local Codex session JSONL files.
+- Detects the primary window with `window_minutes == 300` and never estimates the next reset as
+  `old reset + 5 hours`.
 
 ## Requirements
 
@@ -52,19 +71,23 @@ First inspect the detected window. This is read-only and does not call the Codex
 codex-window-keeper --status
 ```
 
-Codex CLI normally requires a trusted Git working directory. For wake-only requests, a dedicated
-empty repository keeps the task isolated from real projects:
+Codex CLI normally requires a trusted Git working directory. From the cloned project root, create
+an ignored local workspace for wake-only requests and keeper state:
 
 ```bash
-mkdir -p "$HOME/.local/share/codex-window-keeper/wake-workspace"
-git -C "$HOME/.local/share/codex-window-keeper/wake-workspace" init
+mkdir -p workspace/workdir workspace/state
 ```
+
+The project repository provides the trusted Git context, while `workspace/` keeps runtime files
+out of version control. The command working directory and keeper state are separated so the Codex
+request does not run directly beside its scheduler state.
 
 Test the next reset-driven action without executing it:
 
 ```bash
 codex-window-keeper \
-  --workdir "$HOME/.local/share/codex-window-keeper/wake-workspace" \
+  --workdir "$PWD/workspace/workdir" \
+  --state-file "$PWD/workspace/state/reset-wake.json" \
   --dry-run \
   --once
 ```
@@ -73,7 +96,8 @@ Then run continuously:
 
 ```bash
 codex-window-keeper \
-  --workdir "$HOME/.local/share/codex-window-keeper/wake-workspace"
+  --workdir "$PWD/workspace/workdir" \
+  --state-file "$PWD/workspace/state/reset-wake.json"
 ```
 
 After a successful trigger, the service waits until Codex records a different real `resets_at`
@@ -86,33 +110,43 @@ To send the default `hello` request every day at 06:00 local time:
 ```bash
 codex-window-keeper \
   --daily-at 06:00 \
-  --workdir "$HOME/.local/share/codex-window-keeper/wake-workspace"
+  --workdir "$PWD/workspace/workdir" \
+  --state-file "$PWD/workspace/state/wake-0600.json"
 ```
 
 `--wake-at` is an alias for `--daily-at`. Daily scheduling replaces reset-driven triggering; it
 does not force a new five-hour window if an existing window is still active. If the service starts
 after the scheduled time, it catches up once on the same local calendar day.
 
-Use a separate state file for every independent keeper instance:
+### State files and multiple tasks
+
+The state file records completed triggers, failed attempts, and retry timing. Always assign a
+different state file to every independently running keeper task. Sharing one state file causes a
+failure or successful trigger from one task to affect the others.
+
+Use a descriptive filename for each task:
 
 ```bash
 codex-window-keeper \
   --daily-at 06:00 \
-  --workdir "$HOME/.local/share/codex-window-keeper/wake-workspace" \
-  --state-file "$HOME/.local/state/codex-window-keeper/wake-0600.json"
+  --workdir "$PWD/workspace/workdir" \
+  --state-file "$PWD/workspace/state/wake-0600.json"
 ```
 
-Retry state is scoped to the reset timestamp or local date. Changing `--daily-at` does not clear
-failed attempts already recorded for that day; use a fresh test state file when testing another
-time on the same day.
+For example, another task should use a name such as `workspace/state/project-sync.json`, not
+`wake-0600.json`. The parent directory and state file are created automatically. Retry state is
+scoped to the reset timestamp or local date, so changing `--daily-at` does not clear failed
+attempts already recorded for that day. Use a fresh state file when testing another schedule on
+the same day.
 
 For a simple background run without systemd:
 
 ```bash
-mkdir -p logs
+mkdir -p logs workspace/workdir workspace/state
 nohup codex-window-keeper \
   --daily-at 06:00 \
-  --workdir "$HOME/.local/share/codex-window-keeper/wake-workspace" \
+  --workdir "$PWD/workspace/workdir" \
+  --state-file "$PWD/workspace/state/wake-0600.json" \
   > logs/codex-window-keeper.log 2>&1 &
 ```
 
@@ -169,6 +203,12 @@ The default state file is:
 ~/.local/state/codex-window-keeper/state.json
 ```
 
+`--state-file` overrides this path. The quick-start examples keep named state files under the
+project's ignored `workspace/state/` directory for visibility and task isolation. For a permanent
+installation that should survive removal of the source checkout, keep state under
+`~/.local/state/codex-window-keeper/` instead. Whether project-local or user-local, never share one
+state file between independent tasks.
+
 `max_retries = 3` means one initial attempt plus at most three retries. The default retry delay is
 300 seconds. The default timeout is 300 seconds for wake mode and 1,800 seconds for other modes.
 
@@ -217,12 +257,9 @@ attach full session files to bug reports.
 ## Development
 
 ```bash
-.venv/bin/python -m pytest
 .venv/bin/python -m ruff check .
 .venv/bin/python -m mypy src
 ```
-
-Tests use synthetic fixtures and local commands; they do not send Codex requests.
 
 See [Architecture](docs/architecture.md) and [Troubleshooting](docs/troubleshooting.md) for more
 detail. This project is licensed under the [MIT License](LICENSE).

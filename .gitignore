@@ -7,6 +7,7 @@ build/
 dist/
 
 # Test and analysis output
+tests/
 .coverage
 .coverage.*
 htmlcov/
@@ -16,6 +17,7 @@ htmlcov/
 
 # Runtime output
 logs/
+workspace/state/*
 
 # Editors and operating systems
 .DS_Store
