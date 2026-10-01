@@ -21,6 +21,11 @@ classifiers = [
 ]
 dependencies = []
 
+[project.urls]
+Homepage = "https://github.com/smartbird66/codex-window-keeper"
+Repository = "https://github.com/smartbird66/codex-window-keeper.git"
+Issues = "https://github.com/smartbird66/codex-window-keeper/issues"
+
 [project.optional-dependencies]
 dev = [
   "mypy>=1.10",
@@ -36,6 +41,7 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 addopts = "-ra"
+pythonpath = ["src"]
 testpaths = ["tests"]
 
 [tool.ruff]

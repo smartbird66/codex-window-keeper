@@ -1,12 +1,16 @@
 # wake is the conservative default. Use resume modes only after testing manually.
 mode = "wake"
 codex_home = "~/.codex"
-workdir = "~"
+# Codex exec normally requires an existing trusted Git repository.
+workdir = "/path/to/trusted/git/repository"
 prompt = "hello"
 
 # Optional fixed local-time strategy. When set, this replaces reset-based
 # triggering and runs the configured command once per local calendar day.
 # daily_at = "06:00"
+
+# Give each independently running keeper instance its own state file.
+# state_file = "~/.local/state/codex-window-keeper/wake-0600.json"
 
 grace_seconds = 10
 poll_seconds = 20

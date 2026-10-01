@@ -45,7 +45,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-retries", type=int, default=None)
     parser.add_argument("--retry-delay-seconds", type=float, default=None)
     parser.add_argument("--command-timeout", type=float, default=None, help="Timeout in seconds")
-    parser.add_argument("--state-file", default=None, help=argparse.SUPPRESS)
+    parser.add_argument(
+        "--state-file",
+        default=None,
+        help="Persistent state file (use one per independent keeper instance)",
+    )
     parser.add_argument("--once", action="store_true", default=None)
     parser.add_argument("--dry-run", action="store_true", default=None)
     parser.add_argument("--status", action="store_true", default=None)

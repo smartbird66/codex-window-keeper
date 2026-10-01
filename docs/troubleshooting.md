@@ -48,6 +48,23 @@ will not hammer the service. Fix the cause, then either wait for Codex activity 
 window or deliberately edit/remove only the keeper's own state file while the keeper is stopped.
 Never edit a Codex session to force a trigger.
 
+Daily retry accounting is keyed by local calendar date. Changing `daily_at` on the same day does
+not clear attempts from an earlier schedule. For isolated testing or multiple keeper instances,
+assign a separate `state_file` to each instance.
+
+## Codex reports an untrusted directory
+
+`codex exec` normally requires its working directory to be inside a trusted Git repository. The
+keeper's default working directory is the user's home directory, not necessarily the shell's
+current directory. Set `workdir` in TOML or pass it explicitly:
+
+```bash
+codex-window-keeper --workdir /path/to/trusted/git/repository
+```
+
+For wake-only requests, an empty dedicated Git repository is sufficient. Avoid
+`--skip-git-repo-check` unless you understand and accept the trust implications.
+
 ## resume-last chooses no session or the wrong session
 
 Codex CLI 0.155.1 filters `--last` using the current working directory. Set `workdir` to the same

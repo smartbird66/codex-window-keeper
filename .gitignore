@@ -1,12 +1,27 @@
+# Python
 __pycache__/
 *.py[cod]
 *.egg-info/
-.coverage
-.mypy_cache/
-.pytest_cache/
-.ruff_cache/
 .venv/
 build/
 dist/
+
+# Test and analysis output
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Runtime output
 logs/
 
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+
+# Local project notes and prompts
+DEVELOPMENT_SPEC.md
+command.md
