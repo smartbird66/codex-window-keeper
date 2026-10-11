@@ -3,10 +3,9 @@
 `codex-window-keeper` is a small Linux service that helps align Codex's real five-hour usage
 window with your work schedule and automatically runs a Codex CLI action at the right time.
 
-This project is for ChatGPT Plus users working within Codex's five-hour usage limit. The limit is
-often enough overall, but it gets frustrating when several tasks pile up in the same part of the
-day. Upgrading for 5x usage can be overkill: you may not need more total usage, just better timing
-for the usage you already have.
+If you use Codex with ChatGPT Plus, the 5-hour limit can be annoying when a bunch of tasks land at
+the same time. But paying more for 5x usage may be unnecessary when that is far more than you need.
+Sometimes you do not need a bigger quota; you just want the window to reset at a better time.
 
 ## Why this project exists
 
